@@ -2,7 +2,7 @@
 
 Chatbot personnel en Python permettant aux recruteurs d’interroger votre profil à partir de votre CV + LinkedIn grâce à un pipeline RAG (Retrieval Augmented Generation).
 
-🚀 Fonctionnalités
+ Fonctionnalités
 	•	Extraction automatique du texte du CV (PDF)
 	•	Import des données LinkedIn (JSON / CSV)
 	•	Vectorisation des informations via embeddings
@@ -10,81 +10,82 @@ Chatbot personnel en Python permettant aux recruteurs d’interroger votre profi
 	•	Chatbot intelligent répondant aux questions des recruteurs
 	•	API FastAPI + Interface Streamlit
 
-📁 Architecture du projet
 
-career-chatbot-fr/
-├── app/
-│   ├── config.py
-│   ├── ingestion/
-│   │   ├── cv_loader.py
-│   │   ├── linkedin_loader.py
-│   ├── indexing/
-│   │   ├── embedder.py
-│   │   ├── vector_store.py
-│   ├── chatbot/
-│   │   ├── qa_pipeline.py
-│   ├── api/
-│   │   ├── main.py
-│   └── ui/
-│       ├── streamlit_app.py
-├── data/
-│   ├── raw/
-│   └── processed/
-├── tests/
-│   ├── test_ingestion.py
-│   ├── test_indexing.py
-│   └── test_chatbot.py
-├── .env.example
-├── requirements.txt
-└── README.md
+ Architecture du projet
 
-⚙️ Installation
+	career-chatbot-fr/
+	├── app/
+	│   ├── config.py
+	│   ├── ingestion/
+	│   │   ├── cv_loader.py
+	│   │   ├── linkedin_loader.py
+	│   ├── indexing/
+	│   │   ├── embedder.py
+	│   │   ├── vector_store.py
+	│   ├── chatbot/
+	│   │   ├── qa_pipeline.py
+	│   ├── api/
+	│   │   ├── main.py
+	│   └── ui/
+	│       ├── streamlit_app.py
+	├── data/
+	│   ├── raw/
+	│   └── processed/
+	├── tests/
+	│   ├── test_ingestion.py
+	│   ├── test_indexing.py
+	│   └── test_chatbot.py
+	├── .env.example
+	├── requirements.txt
+	└── README.md
 
-1️⃣ Créer l’environnement Python
+	⚙️ Installation
 
-python -m venv venv
-source venv/bin/activate
+	1️⃣ Créer l’environnement Python
 
-2️⃣ Installer les dépendances
+	python -m venv venv
+	source venv/bin/activate
 
-pip install -r requirements.txt
+	2️⃣ Installer les dépendances
 
-3️⃣ Copier votre CV
+	pip install -r requirements.txt
 
-data/raw/cv.pdf
+	3️⃣ Copier votre CV
 
-4️⃣ Ajouter votre export LinkedIn
+	data/raw/cv.pdf
 
-data/raw/LinkedIn_Export.json
+	4️⃣ Ajouter votre export LinkedIn
 
-▶️ Lancer l’API
+	data/raw/LinkedIn_Export.json
 
-uvicorn app.api.main:app --reload
+	▶️ Lancer l’API
 
-▶️ Lancer l’interface Streamlit
+	uvicorn app.api.main:app --reload
 
-streamlit run app/ui/streamlit_app.py
+	▶️ Lancer l’interface Streamlit
 
-🧱 Technologies utilisées
-	•	Python 3.10+
-	•	FastAPI
-	•	Streamlit
-	•	SentenceTransformers
-	•	FAISS ou stockage vecteurs custom
-	•	OpenAI / HuggingFace (au choix)
-	•	pdfplumber
+	streamlit run app/ui/streamlit_app.py
 
-⸻
+	🧱 Technologies utilisées
+		•	Python 3.10+
+		•	FastAPI
+		•	Streamlit
+		•	SentenceTransformers
+		•	FAISS ou stockage vecteurs custom
+		•	OpenAI / HuggingFace (au choix)
+		•	pdfplumber
 
-📌 Objectif du projet
+	⸻
 
-Ce projet a pour but de démontrer :
-	•	Compétences Python avancées
-	•	Structuration propre d’un projet
-	•	API REST moderne
-	•	NLP + embeddings + RAG
-	•	UI légère
-	•	MLOps minimal (tests, env, doc…)
+	📌 Objectif du projet
+
+	Ce projet a pour but de démontrer :
+		•	Compétences Python avancées
+		•	Structuration propre d’un projet
+		•	API REST moderne
+		•	NLP + embeddings + RAG
+		•	UI légère
+		•	MLOps minimal (tests, env, doc…)
 
 ⸻
 
