@@ -1,4 +1,4 @@
-✨ Career Chatbot FR
+ Career Chatbot FR
 
 Chatbot personnel en Python permettant aux recruteurs d’interroger votre profil à partir de votre CV + LinkedIn grâce à un pipeline RAG (Retrieval Augmented Generation).
 
@@ -39,7 +39,7 @@ Chatbot personnel en Python permettant aux recruteurs d’interroger votre profi
 	├── requirements.txt
 	└── README.md
 
-	⚙️ Installation
+	 Installation
 
 	1️⃣ Créer l’environnement Python
 
@@ -66,7 +66,7 @@ Chatbot personnel en Python permettant aux recruteurs d’interroger votre profi
 
 	streamlit run app/ui/streamlit_app.py
 
-	🧱 Technologies utilisées
+	Technologies utilisées
 		•	Python 3.10+
 		•	FastAPI
 		•	Streamlit
@@ -77,7 +77,7 @@ Chatbot personnel en Python permettant aux recruteurs d’interroger votre profi
 
 	⸻
 
-	📌 Objectif du projet
+	 Objectif du projet
 
 	Ce projet a pour but de démontrer :
 		•	Compétences Python avancées
