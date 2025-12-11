@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+pydantic-settings
+
+pdfplumber
+python-docx
+pandas
+numpy
+
+sentence-transformers
+scikit-learn
+
+openai
+
+streamlit
