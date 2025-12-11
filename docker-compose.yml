@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+  # =========================
+  #  Service d'indexation (one-shot)
+  # =========================
+  indexer:
+    build: .
+    container_name: career-chatbot-indexer
+    command: >
+      python -m app.indexing.build_index
+      --cv-path data/raw/cv.pdf
+      --linkedin-dir data/raw
+      --output-dir data/processed
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ./data:/app/data
+    profiles: ["index"]  # ne tourne que si tu le demandes
+
+  # =========================
+  #  API FastAPI
+  # =========================
+  api:
+    build: .
+    container_name: career-chatbot-api
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      # tu peux lancer l'indexer avant si besoin
+      # mais docker-compose ne garantit pas la fin du job,
+      # donc on le gère manuellement via le profil "index"
+      []
+
+  # =========================
+  #  UI Streamlit
+  # =========================
+  ui:
+    build: .
+    container_name: career-chatbot-ui
+    command: >
+      streamlit run app/ui/streamlit_app.py
+      --server.port=8501
+      --server.address=0.0.0.0
+    environment:
+      - API_URL=http://api:8000/chat
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
+    volumes:
+      - ./data:/app/data
