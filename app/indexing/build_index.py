@@ -30,7 +30,6 @@ from app.ingestion.linkedin_loader import (
 from app.indexing.embedder import Embedder
 from app.indexing.vector_store import SimpleVectorStore
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -45,16 +44,38 @@ def build_knowledge_base(
         - "texts": List[str] (tous les chunks)
         - "embeddings": np.ndarray
     """
+    # =======================
+    # CV
+    # =======================
     logger.info("Chargement du CV : %s", cv_path)
     cv_doc = load_cv_document(cv_path)
     cv_chunks = cv_to_text_chunks(cv_doc)
     logger.info("Chunks CV générés : %d", len(cv_chunks))
 
+    # =======================
+    # LinkedIn
+    # =======================
     logger.info("Chargement de l'export LinkedIn depuis : %s", linkedin_dir)
     linkedin_data = load_linkedin_export(linkedin_dir)
-    linkedin_chunks = linkedin_data_to_text_chunks(linkedin_data)
-    logger.info("Chunks LinkedIn générés : %d", len(linkedin_chunks))
 
+    # Logs détaillés sur ce qui a été trouvé
+    if linkedin_data.profile:
+        logger.info("Profil LinkedIn détecté.")
+    else:
+        logger.info("Aucun profil LinkedIn détecté.")
+
+    logger.info("Positions LinkedIn : %d", len(linkedin_data.positions))
+    logger.info("Formations LinkedIn : %d", len(linkedin_data.educations))
+    logger.info("Compétences LinkedIn : %d", len(linkedin_data.skills))
+    logger.info("Certifications LinkedIn : %d", len(linkedin_data.certifications))
+    logger.info("Projets LinkedIn : %d", len(linkedin_data.projects))
+
+    linkedin_chunks = linkedin_data_to_text_chunks(linkedin_data)
+    logger.info("Chunks LinkedIn générés (profil + expériences + formations + compétences + certifications + projets) : %d", len(linkedin_chunks))
+
+    # =======================
+    # Fusion
+    # =======================
     all_texts: List[str] = cv_chunks + linkedin_chunks
     logger.info("Nombre total de chunks (CV + LinkedIn) : %d", len(all_texts))
 
@@ -63,8 +84,12 @@ def build_knowledge_base(
             "Aucun texte à indexer. Vérifiez que le CV et l'export LinkedIn sont bien présents."
         )
 
+    # =======================
+    # Embeddings
+    # =======================
     logger.info("Initialisation de l'embedder...")
     embedder = Embedder()
+    logger.info("Génération des embeddings...")
     embeddings = embedder.encode(all_texts)
     logger.info("Embeddings générés : shape %s", embeddings.shape)
 
@@ -94,6 +119,7 @@ def save_index(
     logger.info("Création du vector store en mémoire...")
     vector_store = SimpleVectorStore()
     vector_store.add_documents(texts, embeddings)
+    logger.info("Vector store créé avec %d documents.", len(vector_store.chunks))
 
     logger.info("Sauvegarde de la knowledge base : %s", kb_path)
     with kb_path.open("wb") as f:
