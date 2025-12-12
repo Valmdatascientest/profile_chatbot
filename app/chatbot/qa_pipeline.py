@@ -1,5 +1,14 @@
+"""
+app/chatbot/qa_pipeline.py
+
+Pipeline de QA pour le chatbot de profil, compatible avec openai>=1.0.0
+"""
+
+from __future__ import annotations
+
 from typing import List
-import openai  # ou openai>=1.x selon la lib que tu utilises
+
+from openai import OpenAI
 
 from app.config import settings
 from app.indexing.embedder import Embedder
@@ -10,15 +19,29 @@ class CareerChatbot:
     def __init__(self, vector_store: SimpleVectorStore, embedder: Embedder):
         self.vector_store = vector_store
         self.embedder = embedder
-        if settings.openai_api_key:
-            openai.api_key = settings.openai_api_key
+
+        if not settings.openai_api_key:
+            raise ValueError(
+                "OPENAI_API_KEY non défini. Renseigne ta clé dans l'environnement ou le fichier .env."
+            )
+
+        # Nouveau client OpenAI (openai>=1.0.0)
+        self.client = OpenAI(api_key=settings.openai_api_key)
 
     def build_context(self, query: str, top_k: int = 5) -> List[str]:
+        """
+        Encode la question, recherche les top_k passages pertinents
+        dans le vector store, et renvoie leurs textes.
+        """
         query_emb = self.embedder.encode([query])[0]
         results = self.vector_store.search(query_emb, top_k=top_k)
         return [chunk.text for chunk, _ in results]
 
     def answer(self, query: str) -> str:
+        """
+        Génère une réponse en utilisant le contexte (CV + LinkedIn)
+        et un LLM OpenAI (modèle défini dans settings.llm_model).
+        """
         context_chunks = self.build_context(query)
         context = "\n\n".join(context_chunks)
 
@@ -31,14 +54,18 @@ Contexte (CV + LinkedIn) :
 Question du recruteur :
 {query}
 
-Réponds en français, en restant factuel, professionnel, et à la première personne ("je").
-Si l'information n'est pas dans le contexte, dis-le honnêtement.
+Réponds en français, de manière professionnelle, à la première personne ("je"),
+en t'appuyant uniquement sur les informations du contexte.
+Si une information ne se trouve pas dans le contexte, indique-le clairement.
 """
 
-        # Exemple pour l'API openai "chat completions" (à adapter à la version de la lib)
-        response = openai.ChatCompletion.create(
+        response = self.client.chat.completions.create(
             model=settings.llm_model,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[
+                {"role": "system", "content": "Tu es un assistant spécialisé dans les profils candidats."},
+                {"role": "user", "content": prompt},
+            ],
             temperature=0.2,
         )
-        return response["choices"][0]["message"]["content"].strip()
+
+        return response.choices[0].message.content.strip()
