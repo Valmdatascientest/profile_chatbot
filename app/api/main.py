@@ -22,6 +22,9 @@ from app.indexing.embedder import Embedder
 from app.indexing.vector_store import SimpleVectorStore
 from app.chatbot.qa_pipeline import CareerChatbot
 
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------

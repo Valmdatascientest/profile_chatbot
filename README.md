@@ -1,214 +1,91 @@
-# Career Chatbot FR
+# Profile Career Chatbot
 
-Ce projet fournit un chatbot permettant de répondre aux questions d’un recruteur à partir de votre CV et de votre export LinkedIn.  
-Il utilise un pipeline RAG (Retrieval Augmented Generation) basé sur des embeddings et une recherche sémantique.
-
----
-
-## Objectif du projet
-
-- Centraliser les données professionnelles d’un candidat (CV + LinkedIn).
-- Construire une base de connaissances vectorisée permettant des réponses contextualisées.
-- Fournir une API FastAPI pour interroger le chatbot.
-- Proposer une interface utilisateur simple via Streamlit.
-- Permettre un déploiement léger via Docker et Docker Compose.
-
----
+Profile Career Chatbot est un chatbot de type RAG (Retrieval-Augmented Generation) permettant de répondre à des recruteurs à partir d’un CV et d’un profil LinkedIn. Le projet utilise des embeddings locaux et un modèle de langage configurable. Il fonctionne sans aucune API key par défaut grâce à un LLM local via Ollama, tout en restant compatible avec OpenAI de manière optionnelle.
 
 ## Fonctionnalités
 
-- Extraction du texte d’un CV (PDF ou DOCX).
-- Import des données exportées depuis LinkedIn.
-- Découpage automatique du CV en sections.
-- Génération de chunks textuels optimisés pour les embeddings.
-- Création d’un index vectoriel (SimpleVectorStore).
-- API REST `/chat` pour poser une question.
-- Interface Streamlit pour une utilisation interactive.
-- Déploiement via Docker ou Docker Compose.
+- Recherche sémantique basée sur un vector store
+- Embeddings locaux avec Sentence-Transformers
+- LLM local par défaut via Ollama (sans clé)
+- Support optionnel d’OpenAI si une clé API est fournie
+- Réponses en français, professionnelles, à la première personne
+- Réponses basées uniquement sur le contexte fourni (CV et LinkedIn)
 
----
+## Architecture
 
-## Architecture du projet
-
-```
-career-chatbot-fr/
-├── app/
-│   ├── config.py
-│   ├── ingestion/
-│   │   ├── cv_loader.py
-│   │   ├── linkedin_loader.py
-│   ├── indexing/
-│   │   ├── embedder.py
-│   │   ├── vector_store.py
-│   │   ├── build_index.py
-│   ├── chatbot/
-│   │   ├── qa_pipeline.py
-│   ├── api/
-│   │   ├── main.py
-│   └── ui/
-│       ├── streamlit_app.py
-├── data/
-│   ├── raw/
-│   │   ├── cv.pdf
-│   │   ├── LinkedIn export files...
-│   └── processed/
-│       ├── vector_store.pkl
-│       ├── knowledge_base.pkl
-├── tests/
-├── requirements.txt
-├── Dockerfile
-├── docker-compose.yml
-└── README.md
-```
-
----
+app/
+├── chatbot/
+│   ├── qa_pipeline.py        Pipeline de question-réponse (RAG)
+│   └── llm_provider.py       Gestion du LLM (OpenAI ou Ollama)
+├── indexing/
+│   ├── embedder.py           Embeddings locaux
+│   └── vector_store.py       Stockage vectoriel
+├── config.py                 Configuration centralisée
+└── main.py                   Point d’entrée de l’application
 
 ## Prérequis
 
-- Python 3.10+
-- pip ou pipenv/poetry
-- Docker et Docker Compose (optionnel mais fortement recommandé)
-- Une clé API OpenAI
+- Python 3.10 ou supérieur
+- pip ou poetry
+- Un CPU standard suffit (GPU non requis)
+- Ollama recommandé pour une utilisation sans API key
 
----
+## Installation
 
-# Installation locale (sans Docker)
+1. Cloner le dépôt :
+   git clone https://github.com/Valmdatascientest/profile_chatbot.git
+   cd profile_chatbot
 
-## 1. Créer l’environnement Python
+2. Installer les dépendances :
+   pip install -r requirements.txt
 
-```
-python -m venv venv
-source venv/bin/activate
-```
+## Utilisation sans API key (par défaut)
 
-## 2. Installer les dépendances
+1. Installer Ollama depuis https://ollama.com
+2. Télécharger un modèle :
+   ollama pull llama3.1:8b
+3. Lancer le service Ollama :
+   ollama serve
+4. Lancer l’application :
+   python -m app.main
 
-```
-pip install -r requirements.txt
-```
+Le chatbot fonctionne alors entièrement en local, sans dépendance à une API externe.
 
-## 3. Ajouter votre CV et export LinkedIn
+## Configuration optionnelle
 
-Placer votre CV dans :
+Il est possible de créer un fichier .env à la racine du projet pour personnaliser la configuration :
 
-```
-data/raw/cv.pdf
-```
+OPENAI_API_KEY=
+LLM_MODEL=gpt-4.1-mini
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=llama3.1:8b
+EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 
-Placer vos fichiers LinkedIn exportés dans :
+## Utilisation avec OpenAI (optionnel)
 
-```
-data/raw/
-```
+Pour utiliser OpenAI, renseigner la variable OPENAI_API_KEY dans le fichier .env, puis relancer l’application. Le projet détecte automatiquement la présence de la clé et utilise OpenAI comme modèle de langage.
 
----
+## Comportement du modèle de langage
 
-# Génération de l’index (CV + LinkedIn)
+- Si OPENAI_API_KEY est définie, OpenAI est utilisé
+- Si aucune clé n’est fournie, Ollama local est utilisé
+- Les embeddings sont toujours calculés localement
 
-Avant de lancer le chatbot, il faut construire l’index vectoriel.
+## Bonnes pratiques
 
-```
-python -m app.indexing.build_index \
-    --cv-path data/raw/cv.pdf \
-    --linkedin-dir data/raw \
-    --output-dir data/processed
-```
+Pour éviter l’avertissement lié à HuggingFace Tokenizers, ajouter la ligne suivante au point d’entrée de l’application :
 
-Cela crée :
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-- `data/processed/knowledge_base.pkl`
-- `data/processed/vector_store.pkl`
+## Améliorations possibles
 
----
+- Ajout d’une interface utilisateur (Streamlit ou Gradio)
+- Remplacement du vector store simple par FAISS
+- Ajout d’une mémoire de conversation
+- Gestion de plusieurs profils
+- Déploiement Docker complet
 
-# Lancement de l’API FastAPI
+## Licence
 
-```
-uvicorn app.api.main:app --reload
-```
-
-API accessible sur :
-
-```
-http://localhost:8000
-```
-
-Documentation interactive :
-
-```
-http://localhost:8000/docs
-```
-
----
-
-# Lancement de l’interface Streamlit
-
-```
-streamlit run app/ui/streamlit_app.py
-```
-
-Interface accessible sur :
-
-```
-http://localhost:8501
-```
-
----
-
-# Déploiement via Docker
-
-## 1. Construire l’image Docker
-
-```
-docker build -t career-chatbot-api .
-```
-
-## 2. Ajouter un fichier `.env`
-
-Créer un fichier `.env` :
-
-```
-OPENAI_API_KEY=your_api_key_here
-```
-
----
-
-# Déploiement via Docker Compose
-
-## 1. Générer l’index
-
-```
-docker compose --profile index run --rm indexer
-```
-
-Ce service lit vos fichiers dans `data/raw` et écrit l’index dans `data/processed`.
-
-## 2. Lancer l’API et l’UI
-
-```
-docker compose up api ui
-```
-
-Services accessibles :
-
-- API : http://localhost:8000  
-- UI : http://localhost:8501  
-
----
-
-# FAQ
-
-### Peut-on utiliser un modèle LLM local ?
-Oui. Le projet est compatible avec n’importe quel LLM. Il suffit de modifier `qa_pipeline.py`.
-
-### Les données personnelles sont-elles stockées dans l’image Docker ?
-Non, elles sont montées en volume via `docker-compose.yml`. Elles ne quittent jamais votre machine.
-
-### Peut-on ajouter une mémoire conversationnelle ?
-Oui, il suffit d’ajouter un buffer de messages récents dans la couche chatbot.
-
----
-
-# Licence
-
-MIT
+Projet pédagogique libre d’utilisation.
