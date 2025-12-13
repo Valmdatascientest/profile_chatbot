@@ -1,39 +1,56 @@
-import os
+from __future__ import annotations
+
 import requests
+from app.config import settings
+
 
 class LLMProvider:
-    def generate(self, prompt: str) -> str:
+    def generate(self, system: str, user: str, temperature: float = 0.2) -> str:
         raise NotImplementedError
 
-class OllamaProvider(LLMProvider):
-    def __init__(self, model: str = None, base_url: str = None):
-        self.model = model or os.getenv("OLLAMA_MODEL", "llama3.1:8b")
-        self.base_url = base_url or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-
-    def generate(self, prompt: str) -> str:
-        r = requests.post(
-            f"{self.base_url}/api/generate",
-            json={"model": self.model, "prompt": prompt, "stream": False},
-            timeout=120,
-        )
-        r.raise_for_status()
-        return r.json()["response"].strip()
 
 class OpenAIProvider(LLMProvider):
-    def __init__(self, api_key: str, model: str = None):
-        from openai import OpenAI
-        self.client = OpenAI(api_key=api_key)
-        self.model = model or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    def __init__(self):
+        from openai import OpenAI  # import lazy
+        self.client = OpenAI(api_key=settings.openai_api_key)
 
-    def generate(self, prompt: str) -> str:
+    def generate(self, system: str, user: str, temperature: float = 0.2) -> str:
         resp = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
+            model=settings.llm_model,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            temperature=temperature,
         )
         return resp.choices[0].message.content.strip()
 
+
+class OllamaProvider(LLMProvider):
+    def __init__(self):
+        self.base_url = settings.ollama_base_url
+        self.model = settings.ollama_model
+
+    def generate(self, system: str, user: str, temperature: float = 0.2) -> str:
+        r = requests.post(
+            f"{self.base_url}/api/chat",
+            json={
+                "model": self.model,
+                "messages": [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                "stream": False,
+                "options": {"temperature": temperature},
+            },
+            timeout=120,
+        )
+        r.raise_for_status()
+        data = r.json()
+        return (data.get("message", {}) or {}).get("content", "").strip()
+
+
 def get_llm_provider() -> LLMProvider:
-    api_key = os.getenv("OPENAI_API_KEY", "").strip()
-    if api_key:
-        return OpenAIProvider(api_key=api_key)
+    if settings.openai_api_key:
+        return OpenAIProvider()
     return OllamaProvider()
