@@ -71,12 +71,6 @@ Pour utiliser OpenAI, renseigner la variable OPENAI_API_KEY dans le fichier .env
 - Si aucune clé n’est fournie, Ollama local est utilisé
 - Les embeddings sont toujours calculés localement
 
-## Bonnes pratiques
-
-Pour éviter l’avertissement lié à HuggingFace Tokenizers, ajouter la ligne suivante au point d’entrée de l’application :
-
-import os
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 ## Améliorations possibles
 
