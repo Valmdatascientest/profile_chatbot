@@ -1,85 +1,95 @@
 # Profile Career Chatbot
 
-Profile Career Chatbot est un chatbot de type RAG (Retrieval-Augmented Generation) permettant de répondre à des recruteurs à partir d’un CV et d’un profil LinkedIn. Le projet utilise des embeddings locaux et un modèle de langage configurable. Il fonctionne sans aucune API key par défaut grâce à un LLM local via Ollama, tout en restant compatible avec OpenAI de manière optionnelle.
+## Présentation du projet
 
-## Fonctionnalités
+Profile Career Chatbot est un projet pédagogique visant à démontrer la mise en œuvre complète d’un chatbot de type RAG (Retrieval-Augmented Generation) appliqué à un cas concret de valorisation de profil candidat à partir d’un CV et d’un profil LinkedIn. L’objectif est de permettre à un recruteur de poser des questions et d’obtenir des réponses cohérentes, professionnelles et strictement basées sur les informations fournies. Le projet met l’accent sur la modularité, la reproductibilité et l’exécution locale, conformément aux bonnes pratiques attendues dans un cadre d’examen.
 
-- Recherche sémantique basée sur un vector store
-- Embeddings locaux avec Sentence-Transformers
-- LLM local par défaut via Ollama (sans clé)
-- Support optionnel d’OpenAI si une clé API est fournie
-- Réponses en français, professionnelles, à la première personne
-- Réponses basées uniquement sur le contexte fourni (CV et LinkedIn)
+## Objectifs pédagogiques
 
-## Architecture
+- Comprendre et implémenter une architecture RAG complète  
+- Mettre en œuvre des embeddings sémantiques locaux  
+- Construire un pipeline de question-réponse contextualisé  
+- Séparer clairement backend API et interface utilisateur  
+- Gérer la configuration par variables d’environnement  
+- Rendre le projet exécutable sans dépendance à une API externe  
 
-app/
-├── chatbot/
-│   ├── qa_pipeline.py        Pipeline de question-réponse (RAG)
-│   └── llm_provider.py       Gestion du LLM (OpenAI ou Ollama)
-├── indexing/
-│   ├── embedder.py           Embeddings locaux
-│   └── vector_store.py       Stockage vectoriel
-├── config.py                 Configuration centralisée
-└── main.py                   Point d’entrée de l’application
+## Architecture générale
 
-## Prérequis
+L’application repose sur une architecture modulaire composée de deux parties principales : une API backend basée sur FastAPI exposée via uvicorn et une interface utilisateur développée avec Streamlit. L’architecture du code est organisée comme suit :
 
-- Python 3.10 ou supérieur
-- pip ou poetry
-- Un CPU standard suffit (GPU non requis)
-- Ollama recommandé pour une utilisation sans API key
+app/  
+├── api/                API FastAPI  
+├── chatbot/            Pipeline RAG et gestion du LLM  
+├── indexing/            Embeddings et vector store  
+├── streamlit/           Interface utilisateur  
+├── config.py            Configuration centralisée  
+└── main.py              Point d’entrée  
+
+## Fonctionnement du pipeline RAG
+
+1. La question de l’utilisateur est encodée à l’aide d’un modèle d’embeddings local.  
+2. Les passages les plus pertinents sont récupérés depuis le vector store.  
+3. Un contexte est construit à partir du CV et du profil LinkedIn.  
+4. Le modèle de langage génère une réponse en français, à la première personne, exclusivement basée sur le contexte fourni.  
+
+## Modèle de langage
+
+Le projet utilise un système de sélection automatique du modèle de langage. Par défaut, un modèle local via Ollama est utilisé sans API key. Si une variable d’environnement OPENAI_API_KEY est définie, OpenAI est utilisé automatiquement. Les embeddings sont toujours calculés localement, quel que soit le modèle de langage sélectionné. Ce choix garantit l’autonomie du projet et sa conformité aux contraintes d’examen.
+
+## Prérequis techniques
+
+- Python 3.10 ou supérieur  
+- pip ou poetry  
+- Machine standard avec CPU (GPU non requis)  
+- Ollama recommandé pour l’exécution locale sans clé API  
 
 ## Installation
 
-1. Cloner le dépôt :
-   git clone https://github.com/Valmdatascientest/profile_chatbot.git
-   cd profile_chatbot
+Cloner le dépôt puis installer les dépendances :
 
-2. Installer les dépendances :
-   pip install -r requirements.txt
+git clone https://github.com/Valmdatascientest/profile_chatbot.git  
+cd profile_chatbot  
+pip install -r requirements.txt  
 
-## Utilisation sans API key (par défaut)
+## Exécution sans API key (mode par défaut)
 
-1. Installer Ollama depuis https://ollama.com
-2. Télécharger un modèle :
-   ollama pull llama3.1:8b
-3. Lancer le service Ollama :
-   ollama serve
-4. Lancer l’application :
-   python -m app.main
+1. Installer Ollama depuis https://ollama.com  
+2. Télécharger un modèle local :  
+   ollama pull llama3.1:8b  
+3. Lancer le service Ollama :  
+   ollama serve  
+4. Démarrer l’API :  
+   uvicorn app.api.main:app --reload  
+5. Démarrer l’interface Streamlit :  
+   streamlit run app/streamlit/app.py  
 
-Le chatbot fonctionne alors entièrement en local, sans dépendance à une API externe.
+## Configuration
 
-## Configuration optionnelle
+La configuration est centralisée via un fichier .env optionnel :
 
-Il est possible de créer un fichier .env à la racine du projet pour personnaliser la configuration :
+OPENAI_API_KEY=  
+LLM_MODEL=gpt-4.1-mini  
+OLLAMA_BASE_URL=http://localhost:11434  
+OLLAMA_MODEL=llama3.1:8b  
+EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2  
 
-OPENAI_API_KEY=
-LLM_MODEL=gpt-4.1-mini
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=llama3.1:8b
-EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+## Critères d’évaluation couverts
 
-## Utilisation avec OpenAI (optionnel)
+- Architecture claire et modulaire  
+- Séparation frontend et backend  
+- Utilisation pertinente du NLP et des embeddings  
+- Pipeline RAG fonctionnel  
+- Exécution locale sans dépendance externe  
+- Configuration propre et reproductible  
 
-Pour utiliser OpenAI, renseigner la variable OPENAI_API_KEY dans le fichier .env, puis relancer l’application. Le projet détecte automatiquement la présence de la clé et utilise OpenAI comme modèle de langage.
+## Perspectives d’amélioration
 
-## Comportement du modèle de langage
-
-- Si OPENAI_API_KEY est définie, OpenAI est utilisé
-- Si aucune clé n’est fournie, Ollama local est utilisé
-- Les embeddings sont toujours calculés localement
-
-
-## Améliorations possibles
-
-- Ajout d’une interface utilisateur (Streamlit ou Gradio)
-- Remplacement du vector store simple par FAISS
-- Ajout d’une mémoire de conversation
-- Gestion de plusieurs profils
-- Déploiement Docker complet
+- Remplacement du vector store simple par FAISS  
+- Ajout d’une mémoire conversationnelle persistante  
+- Conteneurisation avec Docker  
+- Amélioration de l’interface utilisateur  
+- Gestion multi-profils  
 
 ## Licence
 
-Projet pédagogique libre d’utilisation.
+ Libre d’utilisation.
