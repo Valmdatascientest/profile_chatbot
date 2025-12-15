@@ -6,9 +6,9 @@ API_URL = os.getenv("API_URL", "http://localhost:8000/chat")
 
 
 def main():
-    st.title("💼 Chatbot Profil Candidat")
+    st.title(" Chatbot Profil Candidat")
 
-    st.write("Posez une question comme si vous étiez un recruteur.")
+    st.write("Posez une question.")
     query = st.text_input("Question")
 
     if st.button("Envoyer") and query:
