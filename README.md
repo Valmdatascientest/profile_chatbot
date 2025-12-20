@@ -51,6 +51,13 @@ git clone https://github.com/Valmdatascientest/profile_chatbot.git
 cd profile_chatbot  
 pip install -r requirements.txt  
 
+copié le cv dans ./data/raw/cv.pdf
+créer l'index: 
+   python -m app.indexing.build_index \
+   --cv-path ./data/raw/cv.pdf \
+   --linkedin-dir data/raw \
+   --output-dir data/processed
+
 ## Exécution sans API key (mode par défaut)
 
 1. Installer Ollama depuis https://ollama.com  
@@ -61,7 +68,7 @@ pip install -r requirements.txt
 4. Démarrer l’API :  
    uvicorn app.api.main:app --reload  
 5. Démarrer l’interface Streamlit :  
-   streamlit run app/streamlit/app.py  
+   streamlit run app/ui/streamlit_app.py  
 
 ## Configuration
 
