@@ -1,5 +1,7 @@
 # Profile Career Chatbot
 
+[![CI](https://github.com/Valmdatascientest/profile_chatbot/actions/workflows/ci.yml/badge.svg)](https://github.com/Valmdatascientest/profile_chatbot/actions/workflows/ci.yml)
+
 ## Présentation du projet
 
 Profile Career Chatbot est un projet pédagogique visant à démontrer la mise en œuvre complète d’un chatbot de type RAG (Retrieval-Augmented Generation) appliqué à un cas concret de valorisation de profil candidat à partir d’un CV et d’un profil LinkedIn. L’objectif est de permettre à un recruteur de poser des questions et d’obtenir des réponses cohérentes, professionnelles et strictement basées sur les informations fournies. Le projet met l’accent sur la modularité, la reproductibilité et l’exécution locale, conformément aux bonnes pratiques attendues dans un cadre d’examen.
@@ -15,15 +17,17 @@ Profile Career Chatbot est un projet pédagogique visant à démontrer la mise e
 
 ## Architecture générale
 
-L’application repose sur une architecture modulaire composée de deux parties principales : une API backend basée sur FastAPI exposée via uvicorn et une interface utilisateur développée avec Streamlit. L’architecture du code est organisée comme suit :
+L’application repose sur une architecture modulaire composée de deux parties principales : une API backend basée sur FastAPI et une interface utilisateur développée avec Streamlit.
 
-app/  
-├── api/                API FastAPI  
-├── chatbot/            Pipeline RAG et gestion du LLM  
-├── indexing/            Embeddings et vector store  
-├── streamlit/           Interface utilisateur  
-├── config.py            Configuration centralisée  
-└── main.py              Point d’entrée  
+```text
+app/
+├── api/          API FastAPI
+├── chatbot/      Pipeline RAG et sélection du LLM
+├── indexing/     Embeddings et vector store
+├── ingestion/    Parsing CV et export LinkedIn
+├── ui/           Interface Streamlit
+└── config.py     Configuration centralisée
+```
 
 ## Fonctionnement du pipeline RAG
 
@@ -43,20 +47,27 @@ Le projet utilise un système de sélection automatique du modèle de langage. P
 - Machine standard avec CPU (GPU non requis)  
 - Ollama recommandé pour l’exécution locale sans clé API  
 
-## Installation
+## Installation locale
 
 Cloner le dépôt puis installer les dépendances :
 
-git clone https://github.com/Valmdatascientest/profile_chatbot.git  
-cd profile_chatbot  
-pip install -r requirements.txt  
+```bash
+git clone https://github.com/Valmdatascientest/profile_chatbot.git
+cd profile_chatbot
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+```
 
-copié le cv dans ./data/raw/cv.pdf
-créer l'index: 
-   python -m app.indexing.build_index \
-   --cv-path ./data/raw/cv.pdf \
-   --linkedin-dir data/raw \
-   --output-dir data/processed
+Copier ensuite le CV dans `data/raw/cv.pdf` et l’export LinkedIn dans `data/raw/`, puis créer l’index :
+
+```bash
+python -m app.indexing.build_index \
+  --cv-path ./data/raw/cv.pdf \
+  --linkedin-dir data/raw \
+  --output-dir data/processed
+```
 
 ## Exécution sans API key (mode par défaut)
 
@@ -66,19 +77,46 @@ créer l'index:
 3. Lancer le service Ollama :  
    ollama serve  
 4. Démarrer l’API :  
-   uvicorn app.api.main:app --reload  
+   `uvicorn app.api.main:app --reload`
 5. Démarrer l’interface Streamlit :  
-   streamlit run app/ui/streamlit_app.py  
+   `streamlit run app/ui/streamlit_app.py`
+
+## Exécution avec Docker Compose
+
+```bash
+cp .env.example .env
+docker compose --profile index up --build indexer
+docker compose up --build api ui
+```
+
+L’API est disponible sur `http://localhost:8000/health` et l’interface Streamlit sur `http://localhost:8501`.
 
 ## Configuration
 
 La configuration est centralisée via un fichier .env optionnel :
 
+```env
 OPENAI_API_KEY=  
 LLM_MODEL=gpt-4.1-mini  
 OLLAMA_BASE_URL=http://localhost:11434  
 OLLAMA_MODEL=llama3.1:8b  
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2  
+```
+
+## Tests
+
+```bash
+python -m unittest discover -s tests
+```
+
+La CI GitHub exécute ces tests à chaque push et pull request.
+
+## Données personnelles et sécurité
+
+- Les fichiers de CV, exports LinkedIn et index vectoriels ne sont pas versionnés.
+- Le fichier `.env` local ne doit pas être poussé.
+- L’image Docker ne copie pas `data/` : les données personnelles sont montées via volume.
+- Le fichier `vector_store.pkl` est généré localement. Il ne doit pas être chargé depuis une source non fiable.
 
 ## Critères d’évaluation couverts
 

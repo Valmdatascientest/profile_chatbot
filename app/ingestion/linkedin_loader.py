@@ -357,4 +357,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     raw_dir = Path("data/raw")
     data = load_linkedin_export(raw_dir)
-    chunks = linkedin_data_to_text_chun
+    chunks = linkedin_data_to_text_chunks(data)
+    for chunk in chunks:
+        print("----")
+        print(chunk)

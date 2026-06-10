@@ -33,11 +33,9 @@ RUN pip install --upgrade pip && \
 #  Code de l'application
 # ============================
 COPY app app
-COPY data data
 
-# Si tu préfères NE PAS mettre ton CV / export LinkedIn
-# dans l'image, commente la ligne COPY data data
-# et monte un volume à la place (voir plus bas).
+# Les données personnelles (CV, export LinkedIn, index vectoriel) ne sont pas
+# copiées dans l'image. Elles doivent être montées via un volume Docker.
 
 # ============================
 #  Port exposé
