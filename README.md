@@ -36,6 +36,33 @@ app/
 3. Un contexte est construit à partir du CV et du profil LinkedIn.  
 4. Le modèle de langage génère une réponse en français, à la première personne, exclusivement basée sur le contexte fourni.  
 
+### Schéma de fonctionnement
+
+```mermaid
+flowchart LR
+    subgraph INDEX["1. Construction de la base de connaissances"]
+        CV["CV PDF ou DOCX"] --> INGEST["Extraction et découpage en chunks"]
+        LINKEDIN["Export LinkedIn CSV"] --> INGEST
+        INGEST --> EMBED["Embeddings locaux<br/>Sentence Transformers"]
+        EMBED --> STORE[("SimpleVectorStore<br/>vector_store.pkl")]
+    end
+
+    subgraph RAG["2. Question-réponse RAG"]
+        USER["Recruteur"] --> UI["Interface Streamlit"]
+        UI -->|"POST /chat"| API["API FastAPI"]
+        API --> QUERY["Embedding de la question"]
+        QUERY --> STORE
+        STORE -->|"Top 5 passages"| PROMPT["Contexte CV et LinkedIn<br/>+ question"]
+        PROMPT --> CHOICE{"OPENAI_API_KEY définie ?"}
+        CHOICE -->|"Oui"| OPENAI["OpenAI"]
+        CHOICE -->|"Non"| OLLAMA["Ollama local"]
+        OPENAI --> API
+        OLLAMA --> API
+        API --> UI
+        UI --> USER
+    end
+```
+
 ## Modèle de langage
 
 Le projet utilise un système de sélection automatique du modèle de langage. Par défaut, un modèle local via Ollama est utilisé sans API key. Si une variable d’environnement OPENAI_API_KEY est définie, OpenAI est utilisé automatiquement. Les embeddings sont toujours calculés localement, quel que soit le modèle de langage sélectionné. Ce choix garantit l’autonomie du projet et sa conformité aux contraintes d’examen.
